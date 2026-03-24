@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>FC Mobile - Паки с карточками</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Poppins', 'Segoe UI', 'Impact', 'Arial Black', sans-serif;
+            overflow: hidden;
+            background: #0a2f1f;
+        }
+
+        .game-screen {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('Снимок экрана (3)-fotor-2026032119580.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .overlay-dark {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 100%);
+            z-index: 1;
+        }
+
+        .content {
+            position: relative;
+            z-index: 10;
+            padding: 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 60px;
+            padding: 0.8rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #ffcc33;
+            text-shadow: 2px 2px 0 #b45f06;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+        }
+
+        .points {
+            background: linear-gradient(135deg, #ffcc33, #ffaa00);
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-weight: bold;
+            color: #1e2a1c;
+            font-size: 1.2rem;
+        }
+
+        .points span {
+            font-size: 1.5rem;
+            font-weight: 900;
+        }
+
+        .packs-section {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+
+        .packs-title {
+            font-size: 1.2rem;
+            color: #ffcc77;
+            margin-bottom: 1rem;
+        }
+
+        .packs-grid {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .pack-card {
+            background: linear-gradient(135deg, #1a2a1a, #0a1a0a);
+            border-radius: 25px;
+            padding: 1.2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255,215,0,0.5);
+            min-width: 150px;
+        }
+
+        .pack-card:hover {
+            transform: scale(1.05);
+            border-color: gold;
+            box-shadow: 0 0 20px rgba(255,215,0,0.5);
+        }
+
+        .pack-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .pack-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffcc33;
+        }
+
+        .pack-price {
+            font-size: 0.9rem;
+            color: #2ecc71;
+            margin: 0.5rem 0;
+        }
+
+        .pack-desc {
+            font-size: 0.7rem;
+            color: #aaa;
+        }
+
+        .collection-section {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 1.5rem;
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+
+        .collection-title {
+            font-size: 1.2rem;
+            color: #ffcc77;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .collection-stats {
+            font-size: 0.9rem;
+            color: #ddd;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .card-item {
+            background: linear-gradient(145deg, #1e2a1e, #0f1a0f);
+            border-radius: 20px;
+            padding: 1rem 0.8rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            border: 1px solid rgba(255,215,0,0.3);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .card-item:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255,215,0,0.8);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4), 0 0 15px rgba(255,215,0,0.3);
+        }
+
+        .card-rarity {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 0.65rem;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-weight: bold;
+            z-index: 2;
+            color: white;
+            backdrop-filter: blur(4px);
+        }
+
+        .rarity-legendary { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .rarity-epic { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .rarity-rare { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .rarity-common { background: linear-gradient(135deg, #3498db, #2980b9); }
+
+        .card-lightning {
+            width: 70px;
+            height: 70px;
+            margin: 0.5rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #2a3a2a, #1a2a1a);
+            border: 2px solid rgba(255,215,0,0.6);
+            border-radius: 20px;
+            transform: rotate(5deg);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .card-item:hover .card-lightning {
+            border-color: gold;
+            transform: rotate(0deg) scale(1.05);
+            box-shadow: 0 0 15px rgba(255,215,0,0.5);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+        }
+
+        .card-name {
+            font-weight: bold;
+            color: #ffdd77;
+            font-size: 0.85rem;
+            margin-top: 0.6rem;
+        }
+
+        .card-rating {
+            font-size: 0.8rem;
+            color: #2ecc71;
+            margin-top: 0.3rem;
+            font-weight: bold;
+        }
+
+        .card-position {
+            font-size: 0.65rem;
+            color: #ffcc99;
+            margin-top: 0.2rem;
+        }
+
+        .card-price {
+            font-size: 0.7rem;
+            color: #ffaa66;
+            margin-top: 0.3rem;
+            font-weight: bold;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a2a1a, #0a1a0a);
+            border-radius: 40px;
+            padding: 2rem;
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            border: 2px solid gold;
+            animation: slideUp 0.4s ease;
+        }
+
+        .modal-content h2 {
+            font-size: 1.8rem;
+            color: gold;
+            margin-bottom: 1rem;
+        }
+
+        .opened-cards {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        .opened-card {
+            background: linear-gradient(135deg, #2a3a2a, #1a2a1a);
+            border-radius: 20px;
+            padding: 1rem;
+            text-align: center;
+            min-width: 120px;
+            animation: cardReveal 0.5s ease;
+        }
+
+        .opened-card .card-lightning {
+            width: 55px;
+            height: 55px;
+        }
+
+        .close-modal {
+            margin-top: 1rem;
+            padding: 0.8rem 2rem;
+            background: linear-gradient(135deg, #e67e22, #f39c12);
+            border: none;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .buttons-container {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            z-index: 30;
+            padding: 0 1rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 0.8rem 1.8rem;
+            font-size: 1rem;
+            font-weight: bold;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #e67e22, #f39c12);
+        }
+
+        .music-btn {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+
+        .music-btn.hidden {
+            display: none;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes cardReveal {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        }
+
+        @keyframes rippleAnim {
+            0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+        }
+
+        @media (max-width: 700px) {
+            .content { padding: 1rem; }
+            .title { font-size: 1.2rem; }
+            .points { font-size: 0.9rem; padding: 0.3rem 1rem; }
+            .pack-card { min-width: 120px; padding: 0.8rem; }
+            .pack-icon { font-size: 2rem; }
+            .cards-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+            .card-lightning { width: 55px; height: 55px; }
+            .action-btn { padding: 0.6rem 1.2rem; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-screen">
+    <div class="overlay-dark"></div>
+    
+    <div class="content">
+        <div class="header">
+            <div class="title">🃏 КОЛЛЕКЦИЯ КАРТОЧЕК 🃏</div>
+            <div class="points">⭐ ОЧКИ: <span id="pointsAmount">0</span></div>
+        </div>
+
+        <div class="packs-section">
+            <div class="packs-title">📦 ОТКРОЙ ПАКИ И ПОЛУЧИ ИГРОКОВ 📦</div>
+            <div class="packs-grid">
+                <div class="pack-card" data-pack="common">
+                    <div class="pack-icon">📦</div>
+                    <div class="pack-name">ОБЫЧНЫЙ ПАК</div>
+                    <div class="pack-price">💰 <span>100</span> очков</div>
+                    <div class="pack-desc">1 карточка (обычный-редкий)</div>
+                </div>
+                <div class="pack-card" data-pack="rare">
+                    <div class="pack-icon">🎁</div>
+                    <div class="pack-name">РЕДКИЙ ПАК</div>
+                    <div class="pack-price">💰 <span>300</span> очков</div>
+                    <div class="pack-desc">2 карточки (редкий-эпический)</div>
+                </div>
+                <div class="pack-card" data-pack="epic">
+                    <div class="pack-icon">🎉</div>
+                    <div class="pack-name">ЭПИЧЕСКИЙ ПАК</div>
+                    <div class="pack-price">💰 <span>800</span> очков</div>
+                    <div class="pack-desc">3 карточки (эпический-легендарный)</div>
+                </div>
+                <div class="pack-card" data-pack="legendary">
+                    <div class="pack-icon">🏆</div>
+                    <div class="pack-name">ЛЕГЕНДАРНЫЙ ПАК</div>
+                    <div class="pack-price">💰 <span>2000</span> очков</div>
+                    <div class="pack-desc">5 карточек (гарант 1 легендарный)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="collection-section">
+            <div class="collection-title">
+                <span>📋 МОЯ КОЛЛЕКЦИЯ</span>
+                <div class="collection-stats" id="collectionStats">Всего карточек: 0</div>
+            </div>
+            <div class="cards-grid" id="cardsGrid"></div>
+        </div>
+    </div>
+
+    <div class="buttons-container">
+        <button class="action-btn music-btn" id="musicBtn">🎵 ВКЛЮЧИТЬ МУЗЫКУ</button>
+        <button class="action-btn back-btn" id="backToMenuBtn">◀ ВЕРНУТЬСЯ В МЕНЮ</button>
+    </div>
+
+    <audio id="bgMusic" loop preload="auto">
+        <source src="FC_MOBILE_26___FESTIVE_FIXTURES_THEME_SONG.mp3" type="audio/mpeg">
+    </audio>
+</div>
+
+<script>
+    // ========== БАЗА ДАННЫХ ИГРОКОВ (СБАЛАНСИРОВАННАЯ) ==========
+    const players = [
+        // === ОБЫЧНЫЕ ИГРОКИ (Common) - много ===
+        { name: "Алексей Миранчук", position: "Полузащитник", rating: 78, rarity: "common", icon: "⚽", price: 1500 },
+        { name: "Антон Миранчук", position: "Полузащитник", rating: 77, rarity: "common", icon: "⚽", price: 1400 },
+        { name: "Даниил Фомин", position: "Полузащитник", rating: 76, rarity: "common", icon: "⚽", price: 1300 },
+        { name: "Иван Обляков", position: "Полузащитник", rating: 75, rarity: "common", icon: "⚽", price: 1200 },
+        { name: "Данил Глебов", position: "Полузащитник", rating: 76, rarity: "common", icon: "⚽", price: 1250 },
+        { name: "Сергей Пиняев", position: "Нападающий", rating: 74, rarity: "common", icon: "⚽", price: 1100 },
+        { name: "Федор Смолов", position: "Нападающий", rating: 75, rarity: "common", icon: "⚽", price: 1150 },
+        { name: "Николай Комличенко", position: "Нападающий", rating: 74, rarity: "common", icon: "⚽", price: 1050 },
+        { name: "Дмитрий Воробьев", position: "Нападающий", rating: 73, rarity: "common", icon: "⚽", price: 1000 },
+        { name: "Ярослав Гладышев", position: "Нападающий", rating: 72, rarity: "common", icon: "⚽", price: 950 },
+        { name: "Игорь Акинфеев", position: "Вратарь", rating: 79, rarity: "common", icon: "🧤", price: 1800 },
+        { name: "Александр Максименко", position: "Вратарь", rating: 78, rarity: "common", icon: "🧤", price: 1600 },
+        { name: "Станислав Агкацев", position: "Вратарь", rating: 76, rarity: "common", icon: "🧤", price: 1300 },
+        { name: "Евгений Латышонок", position: "Вратарь", rating: 75, rarity: "common", icon: "🧤", price: 1200 },
+        { name: "Денис Адамов", position: "Вратарь", rating: 74, rarity: "common", icon: "🧤", price: 1100 },
+        { name: "Игорь Дивеев", position: "Защитник", rating: 77, rarity: "common", icon: "⚡", price: 1400 },
+        { name: "Арсен Адамов", position: "Защитник", rating: 75, rarity: "common", icon: "⚡", price: 1150 },
+        { name: "Даниил Круговой", position: "Защитник", rating: 74, rarity: "common", icon: "⚡", price: 1050 },
+        { name: "Руслан Литвинов", position: "Защитник", rating: 76, rarity: "common", icon: "⚡", price: 1250 },
+        { name: "Александр Сильянов", position: "Защитник", rating: 75, rarity: "common", icon: "⚡", price: 1180 },
+        
+        // === РЕДКИЕ ИГРОКИ (Rare) ===
+        { name: "Матвей Сафонов", position: "Вратарь", rating: 82, rarity: "rare", icon: "🧤", price: 5000 },
+        { name: "Максим Осипенко", position: "Защитник", rating: 81, rarity: "rare", icon: "⚡", price: 4200 },
+        { name: "Алексей Батраков", position: "Полузащитник", rating: 80, rarity: "rare", icon: "⚡", price: 3800 },
+        { name: "Константин Тюкавин", position: "Нападающий", rating: 82, rarity: "rare", icon: "⚡", price: 4800 },
+        { name: "Федор Чалов", position: "Нападающий", rating: 81, rarity: "rare", icon: "⚡", price: 4500 },
+        { name: "Александр Соболев", position: "Нападающий", rating: 80, rarity: "rare", icon: "⚡", price: 4000 },
+        { name: "Тамерлан Мусаев", position: "Нападающий", rating: 79, rarity: "rare", icon: "⚡", price: 3500 },
+        { name: "Максим Глушенков", position: "Полузащитник", rating: 82, rarity: "rare", icon: "⚡", price: 5200 },
+        { name: "Андрей Мостовой", position: "Полузащитник", rating: 81, rarity: "rare", icon: "⚡", price: 4800 },
+        { name: "Арсен Захарян", position: "Полузащитник", rating: 83, rarity: "rare", icon: "⚡", price: 6500 },
+        { name: "Дмитрий Баринов", position: "Полузащитник", rating: 82, rarity: "rare", icon: "⚡", price: 5500 },
+        { name: "Wendel", position: "Полузащитник", rating: 83, rarity: "rare", icon: "⚡", price: 6200 },
+        { name: "Claudinho", position: "Полузащитник", rating: 83, rarity: "rare", icon: "⚡", price: 6300 },
+        { name: "Jhon Córdoba", position: "Нападающий", rating: 82, rarity: "rare", icon: "⚡", price: 5400 },
+        
+        // === ЭПИЧЕСКИЕ ИГРОКИ (Epic) ===
+        { name: "Александр Головин", position: "Полузащитник", rating: 85, rarity: "epic", icon: "⭐", price: 12000 },
+        { name: "Eduard Spertsyan", position: "Полузащитник", rating: 85, rarity: "epic", icon: "⭐", price: 11000 },
+        { name: "Michael Olise", position: "Полузащитник", rating: 88, rarity: "epic", icon: "⭐", price: 16000 },
+        { name: "Luis Díaz", position: "Нападающий", rating: 87, rarity: "epic", icon: "⭐", price: 14000 },
+        { name: "Raphinha", position: "Нападающий", rating: 88, rarity: "epic", icon: "⭐", price: 15000 },
+        { name: "Declan Rice", position: "Полузащитник", rating: 89, rarity: "epic", icon: "⭐", price: 18000 },
+        { name: "Vitinha", position: "Полузащитник", rating: 87, rarity: "epic", icon: "⭐", price: 13000 },
+        { name: "Federico Valverde", position: "Полузащитник", rating: 90, rarity: "epic", icon: "⭐", price: 20000 },
+        { name: "Pedri", position: "Полузащитник", rating: 90, rarity: "epic", icon: "⭐", price: 19000 },
+        { name: "Bruno Fernandes", position: "Полузащитник", rating: 89, rarity: "epic", icon: "⭐", price: 17000 },
+        { name: "Jules Koundé", position: "Защитник", rating: 86, rarity: "epic", icon: "⭐", price: 12000 },
+        { name: "Dani Olmo", position: "Полузащитник", rating: 85, rarity: "epic", icon: "⭐", price: 11000 },
+        { name: "Florian Wirtz", position: "Полузащитник", rating: 90, rarity: "epic", icon: "⭐", price: 22000 },
+        { name: "Jamal Musiala", position: "Полузащитник", rating: 91, rarity: "epic", icon: "⭐", price: 24000 },
+        
+        // === ЛЕГЕНДАРНЫЕ ИГРОКИ (Legendary) ===
+        { name: "Криштиану Роналду", position: "Нападающий", rating: 95, rarity: "legendary", icon: "👑", price: 50000 },
+        { name: "Lionel Messi", position: "Нападающий", rating: 94, rarity: "legendary", icon: "👑", price: 48000 },
+        { name: "Kylian Mbappé", position: "Нападающий", rating: 96, rarity: "legendary", icon: "👑", price: 55000 },
+        { name: "Erling Haaland", position: "Нападающий", rating: 95, rarity: "legendary", icon: "👑", price: 50000 },
+        { name: "Harry Kane", position: "Нападающий", rating: 94, rarity: "legendary", icon: "👑", price: 45000 },
+        { name: "Vinícius Júnior", position: "Нападающий", rating: 93, rarity: "legendary", icon: "👑", price: 42000 },
+        { name: "Jude Bellingham", position: "Полузащитник", rating: 93, rarity: "legendary", icon: "👑", price: 45000 },
+        { name: "Rodri", position: "Полузащитник", rating: 93, rarity: "legendary", icon: "👑", price: 40000 },
+        { name: "Kevin De Bruyne", position: "Полузащитник", rating: 92, rarity: "legendary", icon: "👑", price: 38000 },
+        { name: "Virgil van Dijk", position: "Защитник", rating: 92, rarity: "legendary", icon: "👑", price: 35000 },
+        { name: "Mohamed Salah", position: "Нападающий", rating: 93, rarity: "legendary", icon: "👑", price: 42000 },
+        { name: "Alisson Becker", position: "Вратарь", rating: 91, rarity: "legendary", icon: "🧤", price: 30000 },
+        { name: "Thibaut Courtois", position: "Вратарь", rating: 91, rarity: "legendary", icon: "🧤", price: 28000 },
+        { name: "Robert Lewandowski", position: "Нападающий", rating: 92, rarity: "legendary", icon: "👑", price: 38000 },
+        { name: "Lamine Yamal", position: "Нападающий", rating: 92, rarity: "legendary", icon: "👑", price: 40000 }
+    ];
+
+    // Стоимость паков
+    const packs = {
+        common: { cost: 100, cards: 1, minRarity: "common", maxRarity: "rare", guaranteedRarity: null },
+        rare: { cost: 300, cards: 2, minRarity: "common", maxRarity: "epic", guaranteedRarity: null },
+        epic: { cost: 800, cards: 3, minRarity: "rare", maxRarity: "legendary", guaranteedRarity: null },
+        legendary: { cost: 2000, cards: 5, minRarity: "rare", maxRarity: "legendary", guaranteedRarity: "legendary" }
+    };
+
+    // Веса редкости
+    const rarityWeights = {
+        common: 50,
+        rare: 30,
+        epic: 15,
+        legendary: 5
+    };
+
+    let points = parseInt(localStorage.getItem('fcPoints')) || 100000;
+    let collection = JSON.parse(localStorage.getItem('fcCollection')) || [];
+
+    function saveData() {
+        localStorage.setItem('fcPoints', points);
+        localStorage.setItem('fcCollection', JSON.stringify(collection));
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('pointsAmount').textContent = points.toLocaleString();
+        document.getElementById('collectionStats').textContent = `Всего карточек: ${collection.length}`;
+        renderCollection();
+    }
+
+    function getRandomPlayerByRarity(targetRarity) {
+        const available = players.filter(p => p.rarity === targetRarity);
+        if (available.length === 0) {
+            // Если нет игроков этой редкости, возвращаем любого
+            return players[Math.floor(Math.random() * players.length)];
+        }
+        return available[Math.floor(Math.random() * available.length)];
+    }
+
+    function getRandomRarity(minRarity, maxRarity) {
+        const rarities = ['common', 'rare', 'epic', 'legendary'];
+        const minIdx = rarities.indexOf(minRarity);
+        const maxIdx = rarities.indexOf(maxRarity);
+        
+        const available = [];
+        for (let i = minIdx; i <= maxIdx; i++) {
+            available.push({ rarity: rarities[i], weight: rarityWeights[rarities[i]] });
+        }
+        
+        const total = available.reduce((s, r) => s + r.weight, 0);
+        let rand = Math.random() * total;
+        for (const item of available) {
+            if (rand < item.weight) return item.rarity;
+            rand -= item.weight;
+        }
+        return available[0].rarity;
+    }
+
+    function openPack(packType) {
+        const pack = packs[packType];
+        if (points < pack.cost) {
+            showToast(`❌ Недостаточно очков! Нужно ${pack.cost}`, false);
+            return;
+        }
+        
+        points -= pack.cost;
+        const openedCards = [];
+        
+        for (let i = 0; i < pack.cards; i++) {
+            let rarity;
+            if (pack.guaranteedRarity && i === pack.cards - 1) {
+                rarity = pack.guaranteedRarity;
+            } else {
+                rarity = getRandomRarity(pack.minRarity, pack.maxRarity);
+            }
+            const player = getRandomPlayerByRarity(rarity);
+            const card = {
+                id: Date.now() + Math.random() + i,
+                name: player.name,
+                position: player.position,
+                rating: player.rating,
+                rarity: player.rarity,
+                icon: player.icon,
+                price: player.price,
+                obtainedAt: new Date().toISOString()
+            };
+            openedCards.push(card);
+            collection.push(card);
+        }
+        
+        saveData();
+        showOpenPackModal(openedCards, packType);
+    }
+
+    function showOpenPackModal(cards, packType) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        const packNames = { common: "ОБЫЧНЫЙ", rare: "РЕДКИЙ", epic: "ЭПИЧЕСКИЙ", legendary: "ЛЕГЕНДАРНЫЙ" };
+        
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h2>🎉 ОТКРЫТ ${packNames[packType]} ПАК! 🎉</h2>
+                <div class="opened-cards">
+                    ${cards.map(card => `
+                        <div class="opened-card">
+                            <div class="card-rarity rarity-${card.rarity}">${getRarityName(card.rarity)}</div>
+                            <div class="card-lightning"><div class="card-icon">${card.icon}</div></div>
+                            <div class="card-name">${card.name}</div>
+                            <div class="card-position">${card.position}</div>
+                            <div class="card-rating">⭐ ${card.rating}</div>
+                            <div class="card-price">💰 ${card.price.toLocaleString()}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="close-modal" onclick="this.closest('.modal').remove()">✨ ОТЛИЧНО! ✨</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        const cardsDivs = modal.querySelectorAll('.opened-card');
+        cardsDivs.forEach((card, index) => {
+            card.style.animation = `cardReveal 0.4s ease ${index * 0.1}s forwards`;
+            card.style.transform = 'scale(0)';
+        });
+    }
+
+    function getRarityName(rarity) {
+        const names = { common: "ОБЫЧНЫЙ", rare: "РЕДКИЙ", epic: "ЭПИЧЕСКИЙ", legendary: "ЛЕГЕНДАРНЫЙ" };
+        return names[rarity];
+    }
+
+    function renderCollection() {
+        const grid = document.getElementById('cardsGrid');
+        grid.innerHTML = '';
+        
+        if (collection.length === 0) {
+            grid.innerHTML = '<div style="grid-column: span 3; text-align: center; color: #ffcc99; padding: 2rem;">📦 Откройте пак, чтобы получить первую карточку!</div>';
+            return;
+        }
+        
+        const order = { legendary: 0, epic: 1, rare: 2, common: 3 };
+        [...collection].sort((a, b) => order[a.rarity] - order[b.rarity]).forEach(card => {
+            const div = document.createElement('div');
+            div.className = 'card-item';
+            div.innerHTML = `
+                <div class="card-rarity rarity-${card.rarity}">${getRarityName(card.rarity)}</div>
+                <div class="card-lightning"><div class="card-icon">${card.icon}</div></div>
+                <div class="card-name">${card.name}</div>
+                <div class="card-position">${card.position}</div>
+                <div class="card-rating">⭐ ${card.rating}</div>
+                <div class="card-price">💰 ${card.price.toLocaleString()}</div>
+            `;
+            grid.appendChild(div);
+        });
+    }
+
+    function showToast(message, isSuccess = true) {
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '30%';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.background = 'rgba(0,0,0,0.9)';
+        toast.style.color = isSuccess ? '#2ecc71' : '#ffcc33';
+        toast.style.padding = '12px 24px';
+        toast.style.borderRadius = '50px';
+        toast.style.zIndex = '1000';
+        toast.style.fontSize = '1rem';
+        toast.style.fontWeight = 'bold';
+        toast.style.whiteSpace = 'nowrap';
+        toast.style.animation = 'fadeInOut 2s ease forwards';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }
+
+    // Музыка
+    const musicBtn = document.getElementById('musicBtn');
+    const bgMusic = document.getElementById('bgMusic');
+    let musicStarted = false;
+
+    const musicState = localStorage.getItem('fcKartsMusicStarted');
+    if (musicState === 'true') {
+        musicStarted = true;
+        bgMusic.play().then(() => {
+            musicBtn.classList.add('hidden');
+        }).catch(e => console.log('Не удалось восстановить музыку'));
+    }
+
+    function playMusic() {
+        if (!musicStarted) {
+            bgMusic.play().then(() => {
+                musicStarted = true;
+                musicBtn.classList.add('hidden');
+                localStorage.setItem('fcKartsMusicStarted', 'true');
+                showToast('🎵 МУЗЫКА ВКЛЮЧЕНА! FC MOBILE 26 THEME 🎵', true);
+                
+                const ripple = document.createElement('div');
+                ripple.style.position = 'fixed';
+                ripple.style.width = '180px';
+                ripple.style.height = '180px';
+                ripple.style.borderRadius = '50%';
+                ripple.style.background = 'radial-gradient(circle, rgba(155,89,182,0.6) 0%, rgba(0,0,0,0) 70%)';
+                ripple.style.left = '50%';
+                ripple.style.top = '50%';
+                ripple.style.transform = 'translate(-50%, -50%)';
+                ripple.style.pointerEvents = 'none';
+                ripple.style.zIndex = '999';
+                ripple.style.animation = 'rippleAnim 0.8s ease-out forwards';
+                document.body.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 800);
+            }).catch(() => showToast('⚠️ Нажмите кнопку ещё раз', false));
+        }
+    }
+
+    musicBtn.addEventListener('click', playMusic);
+
+    // Обработчики паков
+    document.querySelectorAll('.pack-card').forEach(pack => {
+        pack.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const packType = pack.getAttribute('data-pack');
+            if (packType) {
+                openPack(packType);
+            }
+        });
+    });
+
+    document.getElementById('backToMenuBtn').addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        }
+        @keyframes rippleAnim {
+            0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    updateUI();
+</script>
+</body>
+</html>
